@@ -1,4 +1,5 @@
 from flask import Flask, make_response, request, jsonify
+from flask_cors import CORS
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date
@@ -8,6 +9,7 @@ load_dotenv()
 
 
 app = Flask(__name__)
+CORS(app)
 # app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -17,12 +19,12 @@ db = SQLAlchemy(app)
 class Participant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    level = db.Column(db.Integer, nullable=False)
-    challenges_solved = db.Column(db.String(5), nullable=False)
-    first_lang = db.Column(db.String(50), nullable=False)
-    second_lang = db.Column(db.String(50), nullable=False)
-    third_lang = db.Column(db.String(50), nullable=False)
-    other_lang = db.Column(db.String(50))
+    level = db.Column(db.String(12), nullable=False)
+    xp = db.Column(db.String(5), nullable=False)
+    lang1 = db.Column(db.String(50), nullable=False)
+    lang2 = db.Column(db.String(50), nullable=False)
+    lang3 = db.Column(db.String(50), nullable=False)
+    lang_other = db.Column(db.String(50))
     can_pair = db.Column(db.Boolean, nullable=False, default=True)
     date_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
@@ -31,11 +33,11 @@ class Participant(db.Model):
         return {
             'name': self.name,
             'level': self.level,
-            'challenges_solved': self.challenges_solved,
-            'first_lang': self.first_lang,
-            'second_lang': self.second_lang,
-            'third_lang': self.third_lang,
-            'other_lang': self.other_lang,
+            'xp': self.xp,
+            'lang1': self.lang1,
+            'lang2': self.lang2,
+            'lang3': self.lang3,
+            'lang_other': self.lang_other,
         }
 
     def __repr__(self):
@@ -96,7 +98,8 @@ def getGroups():
     for i in range(len(final_groups)):
         final_groups[i] = [
             participant.to_dict for participant in final_groups[i]]
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json",
+               "Access-Control-Allow-Origin": "*"}
     return make_response(jsonify(final_groups), 200, headers)
 
 
@@ -107,16 +110,16 @@ def join():
     req_body = request.json
     name = req_body['name']
     level = req_body['level']
-    challenges_solved = req_body['challengesSolved']
-    first_lang = req_body['firstLang']
-    second_lang = req_body['secondLang']
-    third_lang = req_body['thirdLang']
-    other_lang = req_body['otherLang']
-    new_participant = Participant(name=name, level=level, challenges_solved=challenges_solved, first_lang=first_lang,
-                                  second_lang=second_lang, third_lang=third_lang, other_lang=other_lang)
+    xp = req_body['xp']
+    lang1 = req_body['lang1']
+    lang2 = req_body['lang2']
+    lang3 = req_body['lang3']
+    lang_other = req_body['langOther']
+    new_participant = Participant(name=name, level=level, xp=xp, lang1=lang1,
+                                  lang2=lang2, lang3=lang3, lang_other=lang_other)
     db.session.add(new_participant)
     db.session.commit()
-    return make_response(jsonify({"message": "success"}), 200, {"Content-Type": "application/json"})
+    return make_response(jsonify({"message": "success"}), 200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
 
 
 if __name__ == "__main__":
